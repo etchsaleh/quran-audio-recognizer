@@ -1,0 +1,13 @@
+.DS_Store
+.next/
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.log
+backend/.venv/
+backend/__pycache__/
+backend/.pytest_cache/
+data/quran.json
+

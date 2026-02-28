@@ -1,0 +1,35 @@
+[project]
+name = "quran-audio-backend"
+version = "0.1.0"
+description = "FastAPI backend for Quran Reader with Audio Verse Recognition"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "python-multipart>=0.0.9",
+  "pydantic>=2.7.0",
+  "pydantic-settings>=2.2.1",
+  "httpx>=0.27.0",
+  "rapidfuzz>=3.9.0",
+  "openai-whisper>=20231117",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "pytest-asyncio>=0.23.0",
+  "ruff>=0.6.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["app/tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
