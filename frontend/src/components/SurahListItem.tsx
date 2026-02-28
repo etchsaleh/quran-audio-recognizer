@@ -20,7 +20,7 @@ export function SurahListItem({
       className={cn(
         "group flex items-center justify-between rounded-2xl px-5 py-4 min-h-[56px] transition-all duration-300 active:scale-[0.99]",
         dark
-          ? "bg-white/8 border border-white/10 text-white hover:bg-white/12"
+          ? "bg-app-surface border border-white/10 text-white hover:bg-white/10"
           : "border border-sand-200 bg-white text-ink-950 shadow-soft",
       )}
     >
@@ -28,7 +28,7 @@ export function SurahListItem({
         <div
           className={cn(
             "grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-base font-semibold",
-            dark ? "bg-white/15 text-white" : "bg-teal-500/12 text-teal-600",
+            dark ? "bg-primary/20 text-primary-light" : "bg-teal-500/12 text-teal-600",
           )}
         >
           {surah}

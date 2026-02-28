@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#181621",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${outfit.variable} ${arabic.variable}`}>
-      <body className="font-display bg-shazam-bg text-shazam-white antialiased">
+      <body className="font-display bg-app-bg text-white antialiased">
         {children}
       </body>
     </html>

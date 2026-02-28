@@ -29,41 +29,31 @@ export function HomeClient() {
   const busy = recognizing || recorder.state === "requesting_permission";
   const disableMic = busy || micUnavailable === true;
 
-  async function handlePressCancel() {
-    if (!recorder.isRecording) return;
-    try {
-      await recorder.stop();
-    } catch {
-      // ignore
-    }
-  }
-
-  async function handlePressEnd() {
-    try {
-      setRecognizing(true);
-      setError(null);
-      const blob = await recorder.stop();
-      const res = await api.recognizeAudio(blob);
-      router.push(`/surah/${res.surah}?ayah=${res.ayah}`);
-    } catch (e: unknown) {
-      const raw = e instanceof Error ? e.message : "";
-      if (raw.includes("422")) {
-        setError(
-          "We couldn’t match that. Hold and recite a full verse clearly, then release.",
-        );
-      } else if (raw.includes("413")) {
-        setError("Recording too long. Try a shorter recitation.");
-      } else if (raw.includes("NETWORK:") || raw === "Failed to fetch") {
-        setError("Can’t reach the server. Check the backend is running and try again.");
-      } else {
-        setError(raw || "Something went wrong. Please try again.");
+  async function handleTap() {
+    if (recorder.isRecording) {
+      try {
+        setRecognizing(true);
+        setError(null);
+        const blob = await recorder.stop();
+        const res = await api.recognizeAudio(blob);
+        router.push(`/surah/${res.surah}?ayah=${res.ayah}`);
+      } catch (e: unknown) {
+        const raw = e instanceof Error ? e.message : "";
+        if (raw.includes("422")) {
+          setError("We couldn’t match that. Tap to record, recite a full verse, then tap again.");
+        } else if (raw.includes("413")) {
+          setError("Recording too long. Try a shorter recitation.");
+        } else if (raw.includes("NETWORK:") || raw === "Failed to fetch") {
+          setError("Can’t reach the server. Check the backend is running and try again.");
+        } else {
+          setError(raw || "Something went wrong. Please try again.");
+        }
+      } finally {
+        setRecognizing(false);
       }
-    } finally {
-      setRecognizing(false);
+      return;
     }
-  }
 
-  async function handlePressStart() {
     setError(null);
     try {
       await recorder.start();
@@ -75,8 +65,7 @@ export function HomeClient() {
 
   return (
     <>
-      <main className="min-h-[100dvh] pt-safe-t flex flex-col">
-        {/* Scrollable area: big button + caption */}
+      <main className="min-h-[100dvh] pt-safe-t flex flex-col bg-app-bg">
         <section className="flex-1 flex flex-col items-center justify-center px-4 min-h-0">
           {micUnavailable === true && (
             <div className="absolute top-0 left-0 right-0 mx-4 mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
@@ -90,20 +79,18 @@ export function HomeClient() {
             isRecording={recorder.isRecording}
             level={recorder.level}
             disabled={disableMic}
-            onPressStart={handlePressStart}
-            onPressEnd={handlePressEnd}
-            onPressCancel={handlePressCancel}
+            onTap={handleTap}
             size="full"
           />
 
-          <p className="mt-6 text-center text-[15px] font-medium text-white/70 max-w-[280px] transition-opacity duration-350">
+          <p className="mt-6 text-center text-[15px] font-medium text-white/80 max-w-[280px] transition-opacity duration-350">
             {recorder.isRecording
-              ? "Listening… release to identify"
-              : "Hold to identify a verse"}
+              ? "Tap again to identify verse"
+              : "Tap to start, tap again to identify"}
           </p>
 
           {recorder.error && (
-            <p className="mt-3 text-center text-sm text-rose-400">{recorder.error}</p>
+            <p className="mt-3 text-center text-sm" style={{ color: "#9B6DD4" }}>{recorder.error}</p>
           )}
 
           {error && (
@@ -113,14 +100,14 @@ export function HomeClient() {
           )}
         </section>
 
-        {/* Surahs button - always visible at bottom of viewport */}
         <div
-          className="w-full px-4 pt-3 bg-shazam-bg"
+          className="w-full px-4 pt-3 bg-app-bg"
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         >
           <Link
             href="/surahs"
-            className="flex items-center justify-center w-full rounded-2xl h-14 bg-white/20 border border-white/30 text-white font-semibold text-[17px] transition-all duration-300 active:scale-[0.98] active:bg-white/28"
+            className="flex items-center justify-center w-full rounded-2xl h-14 text-white font-semibold text-[17px] transition-all duration-300 active:scale-[0.98] active:opacity-90"
+            style={{ backgroundColor: "#7C40C6" }}
           >
             Surahs
           </Link>

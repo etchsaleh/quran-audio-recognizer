@@ -35,7 +35,7 @@ export function LoadingOverlay({
             <div
               className={cn(
                 "h-4 w-4 animate-spin rounded-full border-2 border-t-transparent",
-                dark ? "border-white/60 border-t-transparent" : "border-teal-600 border-t-transparent",
+                dark ? "border-primary border-t-transparent" : "border-teal-600 border-t-transparent",
               )}
             />
           </div>

@@ -19,13 +19,23 @@ export function useHighlightVerse(surah: number) {
     const el = document.getElementById(id);
     if (!el) return;
 
-    // Let layout settle, then scroll smoothly.
-    const t = window.setTimeout(() => {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-      setHighlightedAyah(targetAyah);
-    }, 80);
+    // Start smooth scroll; do not show highlight yet.
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    return () => window.clearTimeout(t);
+    // Start highlight only after the verse has scrolled into view.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry?.isIntersecting) {
+          setHighlightedAyah(targetAyah);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5, rootMargin: "0px" },
+    );
+    observer.observe(el);
+
+    return () => observer.disconnect();
   }, [surah, targetAyah]);
 
   // Remove highlight after 1s (matches CSS animation).
@@ -37,4 +47,3 @@ export function useHighlightVerse(surah: number) {
 
   return { highlightedAyah };
 }
-

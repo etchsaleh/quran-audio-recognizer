@@ -4,8 +4,8 @@
   "description": "Identify verses by recitation. Hold to listen.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#181621",
+  "theme_color": "#181621",
   "icons": [
     {"src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"},
     {"src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable"}

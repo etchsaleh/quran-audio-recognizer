@@ -4,17 +4,21 @@
 
 :root {
   color-scheme: dark;
+  --app-bg: #181621;
+  --primary: #7C40C6;
+  --primary-light: #9B6DD4;
+  --primary-dark: #5E2F9E;
 }
 
 html {
   height: 100%;
   -webkit-text-size-adjust: 100%;
-  background-color: #0a0a0a;
+  background-color: var(--app-bg);
 }
 
 body {
   min-height: 100%;
-  background-color: #0a0a0a;
+  background-color: var(--app-bg);
   color: #ffffff;
   /* iPhone safe areas */
   padding-top: env(safe-area-inset-top);
@@ -24,7 +28,7 @@ body {
 }
 
 ::selection {
-  background: rgba(14, 165, 166, 0.22);
+  background: rgba(124, 64, 198, 0.3);
 }
 
 /* Remove tap highlight on iOS */
@@ -37,5 +41,30 @@ a {
 button:active {
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Ensure purple is visible even if Tailwind purges */
+.bg-primary { background-color: var(--primary) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-primary-light { color: var(--primary-light) !important; }
+.border-primary { border-color: var(--primary) !important; }
+.bg-app-bg { background-color: var(--app-bg) !important; }
+.bg-app-surface { background-color: #1E1C28 !important; }
+
+/* Verse highlight: purple background + border, fades out over 1s */
+@keyframes verse-highlight {
+  0% {
+    background-color: rgba(124, 64, 198, 0.45);
+    border-color: rgba(124, 64, 198, 0.9);
+    box-shadow: 0 0 0 2px rgba(124, 64, 198, 0.4);
+  }
+  100% {
+    background-color: rgba(124, 64, 198, 0);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+  }
+}
+.verse-highlight {
+  animation: verse-highlight 1000ms ease-out forwards;
 }
 

@@ -16,16 +16,19 @@ export function Verse({
     <article
       id={`verse-${surah}-${ayah}`}
       className={cn(
-        "rounded-2xl border border-white/10 bg-white/8 px-4 py-4 transition-all duration-300",
-        highlighted ? "animate-highlight border-teal-400/40 bg-teal-400/15" : "",
+        "rounded-2xl border px-4 py-4",
+        highlighted ? "verse-highlight" : "border-white/10 bg-app-surface transition-colors duration-200",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div
-          className="flex-1 text-[20px] leading-[2.15] text-white"
+          className="flex-1 text-[20px] leading-[2.15]"
           dir="rtl"
           lang="ar"
-          style={{ fontVariationSettings: '"wght" 450' }}
+          style={{
+            fontVariationSettings: '"wght" 450',
+            color: highlighted ? "#D4B8F0" : "#ffffff",
+          }}
         >
           {text}
         </div>

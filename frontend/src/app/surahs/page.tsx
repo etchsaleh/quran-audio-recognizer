@@ -8,12 +8,12 @@ export default async function SurahsPage() {
   const surahs = await api.getSurahs();
 
   return (
-    <main className="mx-auto w-full max-w-xl min-h-full flex flex-col">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-shazam-bg/90 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
+    <main className="mx-auto w-full max-w-xl min-h-full flex flex-col bg-app-bg">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-app-bg/95 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
         <div className="flex items-center gap-3 px-4 py-3">
           <Link
             href="/"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white/10 text-white transition-[transform,background] duration-300 active:scale-95 active:bg-white/15"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-app-surface text-white transition-[transform,background] duration-300 active:scale-95 active:bg-white/10"
             aria-label="Back"
           >
             <span className="text-lg leading-none">←</span>

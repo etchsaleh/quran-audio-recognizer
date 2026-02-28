@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { StickyHeader } from "@/components/StickyHeader";
@@ -31,13 +31,6 @@ export function SurahReaderClient({
   const [error, setError] = useState<string | null>(null);
 
   const busy = recognizing || recorder.state === "requesting_permission";
-
-  const statusText = useMemo(() => {
-    if (recognizing) return "Recognizing…";
-    if (recorder.state === "requesting_permission") return "Requesting mic…";
-    if (recorder.isRecording) return "Listening… tap to stop";
-    return "Tap to recognize a verse";
-  }, [recognizing, recorder.isRecording, recorder.state]);
 
   async function onMicClick() {
     setError(null);
@@ -80,10 +73,7 @@ export function SurahReaderClient({
     <>
       <StickyHeader title={title} subtitle={subtitle} backHref="/surahs" />
 
-      <main className="mx-auto w-full max-w-xl px-4 pb-24 pt-4">
-        <p className="mb-3 text-xs text-white/60">
-          Tap the mic to identify a verse by recitation, or read below.
-        </p>
+      <main className="mx-auto w-full max-w-xl px-4 pb-24 pt-4 bg-app-bg">
         {error ? <ErrorBanner message={error} className="mb-3" dark /> : null}
         {recorder.error ? <ErrorBanner message={recorder.error} className="mb-3" dark /> : null}
 
@@ -103,9 +93,7 @@ export function SurahReaderClient({
       <MicFab
         recording={recorder.isRecording}
         disabled={busy}
-        level={recorder.level}
         onClick={onMicClick}
-        statusText={statusText}
       />
 
       <LoadingOverlay show={recognizing} label="Matching your recitation" dark />

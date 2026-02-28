@@ -12,52 +12,37 @@ const config: Config = {
         "safe-r": "env(safe-area-inset-right)",
       },
       colors: {
-        ink: {
-          950: "#0B1220",
-          900: "#101A2D",
-          700: "#2B3A55",
+        ink: { 950: "#0B1220", 900: "#101A2D", 700: "#2B3A55" },
+        sand: { 50: "#FBFAF7", 100: "#F5F1E8", 200: "#ECE4D6" },
+        primary: {
+          DEFAULT: "#7C40C6",
+          light: "#9B6DD4",
+          dark: "#5E2F9E",
         },
-        sand: {
-          50: "#FBFAF7",
-          100: "#F5F1E8",
-          200: "#ECE4D6",
-        },
-        teal: {
-          500: "#0EA5A6",
-          600: "#0B8A8B",
-        },
-        rose: {
-          500: "#F43F5E",
-        },
-        shazam: {
-          bg: "#0a0a0a",
-          surface: "#141414",
-          muted: "#737373",
-          white: "#ffffff",
-        },
+        "app-bg": "#181621",
+        "app-surface": "#1E1C28",
       },
       fontFamily: {
         display: ["var(--font-outfit)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        soft: "0 10px 30px rgba(11, 18, 32, 0.10)",
-        ring: "0 0 0 6px rgba(14, 165, 166, 0.15)",
-        "shazam-btn": "0 0 0 1px rgba(255,255,255,0.08), 0 24px 48px -12px rgba(0,0,0,0.5)",
-        "shazam-glow": "0 0 0 0 rgba(244, 63, 94, 0.4)",
-        "shazam-glow-mid": "0 0 0 32px rgba(244, 63, 94, 0)",
+        soft: "0 10px 30px rgba(0,0,0,0.2)",
+        "btn-soft": "0 0 0 1px rgba(255,255,255,0.08), 0 24px 48px -12px rgba(0,0,0,0.4)",
+        "record-glow": "0 0 0 0 rgba(124, 64, 198, 0.35)",
+        "record-glow-mid": "0 0 0 28px rgba(124, 64, 198, 0)",
       },
       keyframes: {
         highlight: {
-          "0%": { backgroundColor: "rgba(14,165,166,0.28)" },
-          "100%": { backgroundColor: "rgba(14,165,166,0)" },
+          "0%": { backgroundColor: "rgba(124, 64, 198, 0.25)" },
+          "100%": { backgroundColor: "rgba(124, 64, 198, 0)" },
         },
         "record-pulse": {
           "0%, 100%": { transform: "scale(1)", opacity: "1" },
-          "50%": { transform: "scale(1.04)", opacity: "0.92" },
+          "50%": { transform: "scale(1.03)", opacity: "0.95" },
         },
         "record-glow": {
-          "0%, 100%": { boxShadow: "0 0 0 0 rgba(244, 63, 94, 0.35)" },
-          "50%": { boxShadow: "0 0 0 28px rgba(244, 63, 94, 0)" },
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(124, 64, 198, 0.35)" },
+          "50%": { boxShadow: "0 0 0 28px rgba(124, 64, 198, 0)" },
         },
         "idle-breathe": {
           "0%, 100%": { transform: "scale(1)" },
