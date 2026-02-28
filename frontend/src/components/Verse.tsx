@@ -22,11 +22,10 @@ export function Verse({
     >
       <div className="flex items-start justify-between gap-3">
         <div
-          className="flex-1 text-[20px] leading-[2.15]"
+          className="flex-1 font-quran text-[22px] leading-[2.2]"
           dir="rtl"
           lang="ar"
           style={{
-            fontVariationSettings: '"wght" 450',
             color: highlighted ? "#D4B8F0" : "#ffffff",
           }}
         >

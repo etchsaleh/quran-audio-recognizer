@@ -24,6 +24,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-outfit)", "system-ui", "sans-serif"],
+        quran: ["Amiri Quran", "serif"],
       },
       boxShadow: {
         soft: "0 10px 30px rgba(0,0,0,0.2)",

@@ -48,7 +48,7 @@ export function SurahListItem({
               dark ? "text-white/60" : "text-ink-700",
             )}
           >
-            <span className="truncate" dir="rtl">
+            <span className="truncate font-quran" dir="rtl" lang="ar">
               {name}
             </span>
             <span className={dark ? "text-white/40" : "text-sand-200"}>•</span>
