@@ -14,15 +14,25 @@ from app.core.logging import configure_logging
 from app.services.quran_loader import QuranRepository
 from app.services.transcription import WhisperTranscriber
 
-# So Whisper's ffmpeg subprocess is found when the server is run from venv/IDE
-_FFMPEG_PATHS = "/opt/homebrew/bin", "/usr/local/bin"
+def _prepend_ffmpeg_to_path() -> None:
+    """Ensure ffmpeg is findable for faster-whisper (cloud envs often lack it)."""
+    try:
+        import imageio_ffmpeg
+        ffmpeg_dir = os.path.dirname(imageio_ffmpeg.get_ffmpeg_exe())
+        if ffmpeg_dir:
+            os.environ["PATH"] = ffmpeg_dir + os.pathsep + os.environ.get("PATH", "")
+    except Exception:
+        pass
+    # Fallback: common local paths (macOS homebrew)
+    for p in ("/opt/homebrew/bin", "/usr/local/bin"):
+        if os.path.isdir(p) and p not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
+            break
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    extra = os.pathsep.join(p for p in _FFMPEG_PATHS if os.path.isdir(p))
-    if extra:
-        os.environ["PATH"] = extra + os.pathsep + os.environ.get("PATH", "")
+    _prepend_ffmpeg_to_path()
 
     settings = get_settings()
     configure_logging(settings.env)

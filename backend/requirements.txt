@@ -3,9 +3,8 @@ pydantic>=2.7
 uvicorn[standard]
 httpx
 python-dotenv
-pyyaml
 imageio-ffmpeg
 pydantic-settings>=2.2.1
 python-multipart
 rapidfuzz>=3.9.0
-openai-whisper
+faster-whisper>=1.0.0

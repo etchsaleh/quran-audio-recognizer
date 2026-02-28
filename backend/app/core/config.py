@@ -46,6 +46,7 @@ class Settings(BaseSettings):
 
     whisper_model: str = Field(default="base", alias="WHISPER_MODEL")
     whisper_language: str = Field(default="ar", alias="WHISPER_LANGUAGE")
+    whisper_compute_type: str = Field(default="int8", alias="WHISPER_COMPUTE_TYPE")
     preload_whisper: bool = Field(default=False, alias="PRELOAD_WHISPER")
 
     min_confidence: float = Field(default=0.35, alias="MIN_CONFIDENCE")
