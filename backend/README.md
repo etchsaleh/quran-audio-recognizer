@@ -39,7 +39,8 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 See `.env.example`. Key settings:
 - **`QURAN_DATA_URL`**: Quran JSON source (downloaded once, cached locally)
 - **`QURAN_DATA_PATH`**: local cache path (default: repo `data/quran.json`)
-- **`WHISPER_MODEL`**: Whisper model name (e.g. `base`, `small`)
+- **`WHISPER_MODEL`**: Whisper model (default: `OdyAsh/faster-whisper-base-ar-quran` for Quran; `base` for generic Arabic)
+- **`WHISPER_COMPUTE_TYPE`**: `float16` for Quran model, `int8` for base
 - **`MAX_UPLOAD_MB`**: upload size limit
 
 ### Notes

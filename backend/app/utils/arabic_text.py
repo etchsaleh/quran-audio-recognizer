@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 
 # Arabic diacritics (tashkeel) + Qur'anic annotation marks (common range)
 _DIACRITICS_RE = re.compile(
@@ -22,6 +23,7 @@ _CHAR_MAP = str.maketrans(
         "ئ": "ي",
         "ة": "ه",
         "ـ": "",  # tatweel
+        "ڤ": "ف",  # sometimes used in transcriptions
     }
 )
 
@@ -29,12 +31,13 @@ _CHAR_MAP = str.maketrans(
 def normalize_arabic(text: str) -> str:
     """
     Normalize Arabic text for matching:
+    - Unicode NFC normalization (consolidate encodings)
     - remove diacritics / Qur'anic marks
     - unify common letter variants
     - remove non-Arabic punctuation/symbols
     - normalize whitespace
     """
-    t = text.strip()
+    t = unicodedata.normalize("NFC", text.strip())
     t = _DIACRITICS_RE.sub("", t)
     t = t.translate(_CHAR_MAP)
     t = _PUNCT_RE.sub(" ", t)

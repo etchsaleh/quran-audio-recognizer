@@ -44,12 +44,18 @@ class Settings(BaseSettings):
         alias="QURAN_DATA_URL",
     )
 
-    whisper_model: str = Field(default="base", alias="WHISPER_MODEL")
+    whisper_model: str = Field(
+        default="OdyAsh/faster-whisper-base-ar-quran",
+        alias="WHISPER_MODEL",
+    )
     whisper_language: str = Field(default="ar", alias="WHISPER_LANGUAGE")
-    whisper_compute_type: str = Field(default="int8", alias="WHISPER_COMPUTE_TYPE")
+    whisper_compute_type: str = Field(
+        default="float16",  # float16 for Quran model; int8 for base
+        alias="WHISPER_COMPUTE_TYPE",
+    )
     preload_whisper: bool = Field(default=False, alias="PRELOAD_WHISPER")
 
-    min_confidence: float = Field(default=0.35, alias="MIN_CONFIDENCE")
+    min_confidence: float = Field(default=0.45, alias="MIN_CONFIDENCE")  # balanced: fewer wrong matches, fewer false negatives
 
     @property
     def cors_origins(self) -> list[str]:
