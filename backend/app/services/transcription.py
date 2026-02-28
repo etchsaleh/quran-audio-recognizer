@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from faster_whisper import Whisper
+from faster_whisper import WhisperModel
 
 from app.core.config import Settings
 
@@ -21,7 +21,7 @@ class WhisperTranscriber:
         self._model_name = model_name
         self._language = language
         self._compute_type = compute_type
-        self._model: Whisper | None = None
+        self._model: WhisperModel | None = None
 
     @classmethod
     def from_settings(cls, settings: Settings) -> "WhisperTranscriber":
@@ -34,7 +34,7 @@ class WhisperTranscriber:
     def ensure_loaded(self) -> None:
         if self._model is None:
             logger.info("Loading Whisper model: %s (compute_type=%s)", self._model_name, self._compute_type)
-            self._model = Whisper(
+            self._model = WhisperModel(
                 self._model_name,
                 device="cpu",
                 compute_type=self._compute_type,
