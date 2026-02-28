@@ -1,17 +1,22 @@
 import { cn } from "@/lib/cn";
 import { toArabicIndicDigits } from "@/lib/arabic";
+import { splitVerseByPhrase } from "@/lib/verse-text";
 
 export function Verse({
   surah,
   ayah,
   text,
   highlighted,
+  highlightedPhrase,
 }: {
   surah: number;
   ayah: number;
   text: string;
   highlighted: boolean;
+  highlightedPhrase?: string | null;
 }) {
+  const { before, phrase, after } = splitVerseByPhrase(text, highlighted && highlightedPhrase ? highlightedPhrase : null);
+
   return (
     <article
       id={`verse-${surah}-${ayah}`}
@@ -29,7 +34,15 @@ export function Verse({
             color: highlighted ? "#D4B8F0" : "#ffffff",
           }}
         >
-          {text}
+          {phrase ? (
+            <>
+              {before}
+              <span className="phrase-highlight">{phrase}</span>
+              {after}
+            </>
+          ) : (
+            text
+          )}
         </div>
         <div className="shrink-0 pt-1">
           <span

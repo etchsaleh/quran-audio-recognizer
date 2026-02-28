@@ -8,12 +8,44 @@ from app.services.quran_loader import VerseEntry
 from app.utils.arabic_text import normalize_arabic
 
 
+def _word_split(text: str) -> list[str]:
+    """Split by whitespace, 1:1 alignment with normalized."""
+    return [w for w in text.split() if w]
+
+
+def _extract_matched_phrase(verse: VerseEntry, query_norm: str) -> str | None:
+    """Find the span of verse text that best matches the transcript."""
+    v_norm_words = _word_split(verse.text_norm)
+    v_orig_words = _word_split(verse.text)
+    if not v_norm_words or len(v_norm_words) != len(v_orig_words):
+        return None
+    q_words = _word_split(query_norm)
+    if not q_words:
+        return None
+
+    best_score = 0.0
+    best_start, best_end = 0, 0
+
+    for i in range(len(v_norm_words)):
+        for j in range(i + 1, len(v_norm_words) + 1):
+            span_norm = " ".join(v_norm_words[i:j])
+            s = fuzz.partial_ratio(query_norm, span_norm) / 100.0
+            if s > best_score:
+                best_score = s
+                best_start, best_end = i, j
+
+    if best_score < 0.5:
+        return None
+    return " ".join(v_orig_words[best_start:best_end])
+
+
 @dataclass(frozen=True, slots=True)
 class MatchResult:
     surah: int
     ayah: int
     confidence: float
     score: float
+    matched_phrase: str | None = None
 
 
 def _tokenize(text_norm: str) -> list[str]:
@@ -91,10 +123,12 @@ class VerseMatcher:
         uniqueness = _clamp01(margin / 0.12)  # ~0.12 gap is a strong indicator
         confidence = _clamp01(strength * 0.75 + uniqueness * 0.25)
 
+        matched_phrase = _extract_matched_phrase(verse, q)
         return MatchResult(
             surah=verse.surah,
             ayah=verse.ayah,
             confidence=confidence,
             score=best_score,
+            matched_phrase=matched_phrase,
         )
 

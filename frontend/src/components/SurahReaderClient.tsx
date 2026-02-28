@@ -24,7 +24,7 @@ export function SurahReaderClient({
   verses: Array<{ ayah: number; text: string }>;
 }) {
   const router = useRouter();
-  const { highlightedAyah } = useHighlightVerse(surah);
+  const { highlightedAyah, matchedPhrase } = useHighlightVerse(surah);
 
   const recorder = useAudioRecorder({ maxSeconds: 12 });
   const [recognizing, setRecognizing] = useState(false);
@@ -39,7 +39,9 @@ export function SurahReaderClient({
         setRecognizing(true);
         const blob = await recorder.stop();
         const res = await api.recognizeAudio(blob);
-        // Navigate to matched verse. If same surah, query param change triggers highlight+scroll.
+        if (res.matched_phrase && typeof sessionStorage !== "undefined") {
+          sessionStorage.setItem("quran-matched-phrase", res.matched_phrase);
+        }
         router.push(`/surah/${res.surah}?ayah=${res.ayah}`);
       } catch (e: any) {
         const raw = e?.message ? String(e.message) : "";
@@ -85,6 +87,7 @@ export function SurahReaderClient({
               ayah={v.ayah}
               text={v.text}
               highlighted={highlightedAyah === v.ayah}
+              highlightedPhrase={highlightedAyah === v.ayah ? matchedPhrase ?? undefined : undefined}
             />
           ))}
         </div>

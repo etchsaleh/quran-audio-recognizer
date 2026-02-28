@@ -19,5 +19,6 @@ export type RecognizeResponse = {
   surah: number;
   ayah: number;
   confidence: number;
+  matched_phrase?: string | null;
 };
 

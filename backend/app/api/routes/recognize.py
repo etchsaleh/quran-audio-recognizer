@@ -51,5 +51,10 @@ async def recognize(request: Request, file: UploadFile = File(...)) -> Recognize
     if result is None:
         raise HTTPException(status_code=422, detail="Could not confidently recognize a verse")
 
-    return RecognizeResponse(surah=result.surah, ayah=result.ayah, confidence=result.confidence)
+    return RecognizeResponse(
+        surah=result.surah,
+        ayah=result.ayah,
+        confidence=result.confidence,
+        matched_phrase=result.matched_phrase,
+    )
 

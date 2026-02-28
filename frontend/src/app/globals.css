@@ -75,3 +75,20 @@ button:active {
   animation: verse-highlight 1000ms ease-out forwards;
 }
 
+/* Recited phrase highlight: bright purple text, fades out over 2s */
+@keyframes phrase-highlight {
+  0% {
+    color: #E8D4FF;
+    background-color: rgba(156, 100, 255, 0.4);
+  }
+  100% {
+    color: inherit;
+    background-color: transparent;
+  }
+}
+.phrase-highlight {
+  animation: phrase-highlight 2000ms ease-out forwards;
+  border-radius: 4px;
+  padding: 0 2px;
+}
+

@@ -17,6 +17,7 @@ class RecognitionResult:
     surah: int
     ayah: int
     confidence: float
+    matched_phrase: str | None = None
 
 
 class RecognizePipeline:
@@ -56,5 +57,10 @@ class RecognizePipeline:
                 logger.info("Low confidence match: score=%s conf=%s", match.score, match.confidence)
                 return None
 
-            return RecognitionResult(surah=match.surah, ayah=match.ayah, confidence=match.confidence)
+            return RecognitionResult(
+                surah=match.surah,
+                ayah=match.ayah,
+                confidence=match.confidence,
+                matched_phrase=match.matched_phrase,
+            )
 

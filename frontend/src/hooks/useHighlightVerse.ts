@@ -12,6 +12,7 @@ export function useHighlightVerse(surah: number) {
   }, [sp]);
 
   const [highlightedAyah, setHighlightedAyah] = useState<number | null>(null);
+  const [matchedPhrase, setMatchedPhrase] = useState<string | null>(null);
 
   useEffect(() => {
     if (!targetAyah) return;
@@ -19,10 +20,15 @@ export function useHighlightVerse(surah: number) {
     const el = document.getElementById(id);
     if (!el) return;
 
-    // Start smooth scroll; do not show highlight yet.
+    const phrase =
+      typeof sessionStorage !== "undefined" ? sessionStorage.getItem("quran-matched-phrase") : null;
+    if (phrase) {
+      setMatchedPhrase(phrase);
+      sessionStorage.removeItem("quran-matched-phrase");
+    }
+
     el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    // Start highlight only after the verse has scrolled into view.
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
@@ -38,12 +44,15 @@ export function useHighlightVerse(surah: number) {
     return () => observer.disconnect();
   }, [surah, targetAyah]);
 
-  // Remove highlight after 1s (matches CSS animation).
+  // Remove verse highlight after 1s; phrase highlight animates 2s via CSS.
   useEffect(() => {
     if (highlightedAyah == null) return;
-    const t = window.setTimeout(() => setHighlightedAyah(null), 1000);
+    const t = window.setTimeout(() => {
+      setHighlightedAyah(null);
+      setMatchedPhrase(null);
+    }, 2000);
     return () => window.clearTimeout(t);
   }, [highlightedAyah]);
 
-  return { highlightedAyah };
+  return { highlightedAyah, matchedPhrase };
 }

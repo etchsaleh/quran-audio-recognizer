@@ -36,6 +36,9 @@ export function HomeClient() {
         setError(null);
         const blob = await recorder.stop();
         const res = await api.recognizeAudio(blob);
+        if (res.matched_phrase && typeof sessionStorage !== "undefined") {
+          sessionStorage.setItem("quran-matched-phrase", res.matched_phrase);
+        }
         router.push(`/surah/${res.surah}?ayah=${res.ayah}`);
       } catch (e: unknown) {
         const raw = e instanceof Error ? e.message : "";
