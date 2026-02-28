@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     )
     whisper_language: str = Field(default="ar", alias="WHISPER_LANGUAGE")
     whisper_compute_type: str = Field(
-        default="float16",  # float16 for Quran model; int8 for base
+        default="int8",  # works on CPU; use float16 if your device supports it
         alias="WHISPER_COMPUTE_TYPE",
     )
     preload_whisper: bool = Field(default=False, alias="PRELOAD_WHISPER")
