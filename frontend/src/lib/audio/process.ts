@@ -141,13 +141,13 @@ export async function processAudio(
   const rendered = await offline.startRendering();
   const samples = rendered.getChannelData(0);
 
-  let out = new Float32Array(samples.length);
+  let out: Float32Array = new Float32Array(samples.length);
   out.set(samples);
   if (opts.trimSilence) {
-    out = trimSilence(out, TARGET_SAMPLE_RATE);
+    out = new Float32Array(trimSilence(out, TARGET_SAMPLE_RATE));
   }
   if (opts.trimVad) {
-    out = trimVad(out, TARGET_SAMPLE_RATE);
+    out = new Float32Array(trimVad(out, TARGET_SAMPLE_RATE));
   }
   if (opts.normalize && out.length > 0) {
     normalize(out, TARGET_RMS);
