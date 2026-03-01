@@ -1,7 +1,7 @@
 {
   "name": "Quran",
   "short_name": "Quran",
-  "description": "Identify verses by recitation. Hold to listen.",
+  "description": "Identify verses by recitation. Tap to listen.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#181621",

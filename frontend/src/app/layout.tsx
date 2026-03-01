@@ -6,7 +6,7 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
   title: "Quran",
-  description: "Identify verses by recitation. Hold to listen.",
+  description: "Identify verses by recitation. Tap to listen.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Quran" },
   icons: {
