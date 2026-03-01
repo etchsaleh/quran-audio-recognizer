@@ -243,12 +243,15 @@ export function HomeClient() {
   const statusLabel = !recorder.isRecording
     ? "Tap to identify a verse"
     : phase === "identifying"
-      ? "Identifying…"
-      : "Listening…";
+      ? "Identifying"
+      : "Listening";
 
   return (
     <main className="min-h-[100dvh] pt-safe-t flex flex-col bg-app-bg">
-      <section className="flex-1 flex flex-col items-center justify-center px-4 min-h-0">
+      <section className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pt-12">
+        <p className="absolute top-0 left-0 right-0 pt-safe-t pt-12 pb-2 text-center font-display text-[19px] font-black text-white">
+          Find your place in the recitation.
+        </p>
         {micUnavailable === true && (
           <div className="absolute top-0 left-0 right-0 mx-4 mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
             <p className="text-[13px] font-medium text-amber-200">

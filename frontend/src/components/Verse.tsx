@@ -3,6 +3,13 @@ import { toArabicIndicDigits } from "@/lib/arabic";
 import { splitVerseByPhrase, splitVerseIntoWords } from "@/lib/verse-text";
 import { getJuz, isJuzStart } from "@/lib/juz";
 
+/** Verses that contain a place of prostration (sajdah) – classic Quran symbol ۩ */
+const SAJDAH_VERSES = new Set<string>([
+  "7-206", "13-15", "16-50", "17-109", "19-58", "22-18", "25-60", "27-26",
+  "32-15", "38-24", "41-38", "53-62", "84-21", "96-19",
+]);
+const SAJDAH_SYMBOL = "۩"; // U+06E9 Arabic place of sajdah
+
 export function Verse({
   surah,
   ayah,
@@ -22,8 +29,10 @@ export function Verse({
   isBookmarked?: boolean;
   onToggleBookmark?: (surah: number, ayah: number) => void;
 }) {
-  const { before, phrase, after } = splitVerseByPhrase(text, highlighted && highlightedPhrase ? highlightedPhrase : null);
-  const words = splitVerseIntoWords(text);
+  const isSajdahVerse = SAJDAH_VERSES.has(`${surah}-${ayah}`);
+  const textWithoutSajdah = isSajdahVerse ? text.replace(/\u06E9/g, "").trim() : text;
+  const { before, phrase, after } = splitVerseByPhrase(textWithoutSajdah, highlighted && highlightedPhrase ? highlightedPhrase : null);
+  const words = splitVerseIntoWords(textWithoutSajdah);
   const wordHighlightSet =
     highlighted && highlightedWordIndices?.length
       ? new Set(highlightedWordIndices)
@@ -66,7 +75,7 @@ export function Verse({
           onToggleBookmark && "cursor-pointer active:scale-[0.99]",
           highlighted && "verse-highlight",
           !highlighted && "border-white/10 bg-app-surface transition-colors duration-200",
-          !highlighted && isBookmarked && "verse-bookmark bg-primary/20 font-semibold",
+          !highlighted && isBookmarked && "verse-bookmark bg-primary/20",
         )}
         aria-label={onToggleBookmark ? (isBookmarked ? "Remove bookmark" : "Bookmark verse") : undefined}
       >
@@ -89,20 +98,37 @@ export function Verse({
                     {w}{" "}
                   </span>
                 ))}
+                {isSajdahVerse && (
+                  <span className="sajdah-symbol" aria-label="Place of prostration">
+                    {" "}{SAJDAH_SYMBOL}
+                  </span>
+                )}
               </>
             ) : phrase ? (
               <>
                 {before}
                 <span className="phrase-highlight">{phrase}</span>
                 {after}
+                {isSajdahVerse && (
+                  <span className="sajdah-symbol" aria-label="Place of prostration">
+                    {" "}{SAJDAH_SYMBOL}
+                  </span>
+                )}
               </>
             ) : (
-              text
+              <>
+                {textWithoutSajdah}
+                {isSajdahVerse && (
+                  <span className="sajdah-symbol" aria-label="Place of prostration">
+                    {" "}{SAJDAH_SYMBOL}
+                  </span>
+                )}
+              </>
             )}
           </div>
           <div className="flex shrink-0 pt-1">
             <span
-              className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white/80"
+              className="verse-number-badge"
               aria-label={`Verse ${ayah}`}
             >
               {toArabicIndicDigits(ayah)}

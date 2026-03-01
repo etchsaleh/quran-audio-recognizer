@@ -24,16 +24,8 @@ export function SurahListItem({
           : "border border-sand-200 bg-white text-ink-950 shadow-soft",
       )}
     >
-      <div className="flex items-center gap-4 min-w-0">
-        <div
-          className={cn(
-            "grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-base font-semibold",
-            dark ? "bg-primary/20 text-primary-light" : "bg-teal-500/12 text-teal-600",
-          )}
-        >
-          {surah}
-        </div>
-        <div className="min-w-0">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="min-w-0 flex-1">
           <div
             className={cn(
               "truncate text-[15px] font-semibold",
@@ -56,15 +48,15 @@ export function SurahListItem({
           </div>
         </div>
       </div>
-      <div
+      <span
         className={cn(
-          "transition-colors",
+          "shrink-0 transition-colors",
           dark ? "text-white/50 group-hover:text-white" : "text-ink-700 group-hover:text-ink-950",
         )}
         aria-hidden="true"
       >
         →
-      </div>
+      </span>
     </Link>
   );
 }

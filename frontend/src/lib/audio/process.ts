@@ -1,7 +1,7 @@
 /**
  * Lightweight client-side audio processing for recognition:
- * band-pass (80–4000 Hz), silence trim, simple VAD trim, normalize gain, 16 kHz mono WAV.
- * Single pass where possible; no heavy DSP.
+ * band-pass, optional treble boost (muffled mics), silence/VAD trim,
+ * tail attenuation (reverb/echo), normalize, optional soft compression, 16 kHz mono WAV.
  */
 
 import { encodeWav } from "./wavEncoder";
@@ -12,23 +12,34 @@ const BANDPASS_HIGH = 4000;
 const RMS_SILENCE_THRESHOLD = 0.008;
 const MIN_VOICE_MS = 120;
 const TARGET_RMS = 0.12;
+const TREBLE_SHELF_HZ = 2400;
+const TREBLE_GAIN_DB = 2.5;
+const TAIL_FRACTION = 0.35;
+const TAIL_MIN_GAIN = 0.65;
+const COMPRESS_THRESHOLD = 0.4;
+const COMPRESS_STRENGTH = 0.22;
 
 export interface ProcessOptions {
-  /** Apply band-pass filter (80–4000 Hz). Default true. */
   bandpass?: boolean;
-  /** Trim leading/trailing silence. Default true. */
+  /** Slight high-frequency boost for muffled mics. Default true. */
+  trebleBoost?: boolean;
   trimSilence?: boolean;
-  /** Drop leading/trailing non-voice (simple VAD). Default true. */
   trimVad?: boolean;
-  /** Normalize gain to target RMS. Default true. */
+  /** Attenuate tail of buffer to reduce reverb/echo. Default true. */
+  attenuateTail?: boolean;
   normalize?: boolean;
+  /** Mild compression for inconsistent levels. Default true. */
+  compress?: boolean;
 }
 
 const defaultOptions: Required<ProcessOptions> = {
   bandpass: true,
+  trebleBoost: true,
   trimSilence: true,
   trimVad: true,
+  attenuateTail: true,
   normalize: true,
+  compress: true,
 };
 
 function rms(samples: Float32Array, start: number, end: number): number {
@@ -107,6 +118,34 @@ function normalize(samples: Float32Array, targetRms: number): void {
   }
 }
 
+/** Attenuate the tail of the buffer to reduce reverb/echo contribution. */
+function attenuateTail(
+  samples: Float32Array,
+  tailFraction: number,
+  minGain: number,
+): void {
+  const n = samples.length;
+  const start = Math.floor(n * (1 - tailFraction));
+  if (start >= n) return;
+  for (let i = start; i < n; i++) {
+    const t = (i - start) / (n - start);
+    const gain = 1 - (1 - minGain) * t;
+    samples[i] *= gain;
+  }
+}
+
+/** Soft-knee compression to even out levels (helps fuzzy/echoed speech). */
+function compress(samples: Float32Array, threshold: number, strength: number): void {
+  for (let i = 0; i < samples.length; i++) {
+    const x = samples[i];
+    const abs = Math.abs(x);
+    if (abs <= threshold) continue;
+    const excess = abs - threshold;
+    const scale = 1 - strength * Math.min(1, excess / (1 - threshold));
+    samples[i] = x * scale;
+  }
+}
+
 /**
  * Process recorded audio: decode, optional band-pass, trim, normalize, resample to 16 kHz mono, encode WAV.
  */
@@ -124,19 +163,25 @@ export async function processAudio(
   const offline = new OfflineAudioContext(1, numSamples, TARGET_SAMPLE_RATE);
   const source = offline.createBufferSource();
   source.buffer = audioBuffer;
-  source.connect(offline.destination);
 
-  let filterNode: BiquadFilterNode | null = null;
+  let lastNode: AudioNode = source;
   if (opts.bandpass) {
-    filterNode = offline.createBiquadFilter();
-    filterNode.type = "bandpass";
-    const center = Math.sqrt(BANDPASS_LOW * BANDPASS_HIGH);
-    filterNode.frequency.value = center;
-    filterNode.Q.value = center / (BANDPASS_HIGH - BANDPASS_LOW);
-    source.disconnect();
-    source.connect(filterNode);
-    filterNode.connect(offline.destination);
+    const bp = offline.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = Math.sqrt(BANDPASS_LOW * BANDPASS_HIGH);
+    bp.Q.value = bp.frequency.value / (BANDPASS_HIGH - BANDPASS_LOW);
+    source.connect(bp);
+    lastNode = bp;
   }
+  if (opts.trebleBoost) {
+    const shelf = offline.createBiquadFilter();
+    shelf.type = "highshelf";
+    shelf.frequency.value = TREBLE_SHELF_HZ;
+    shelf.gain.value = TREBLE_GAIN_DB;
+    lastNode.connect(shelf);
+    lastNode = shelf;
+  }
+  lastNode.connect(offline.destination);
   source.start(0);
   const rendered = await offline.startRendering();
   const samples = rendered.getChannelData(0);
@@ -149,8 +194,14 @@ export async function processAudio(
   if (opts.trimVad) {
     out = new Float32Array(trimVad(out, TARGET_SAMPLE_RATE));
   }
+  if (opts.attenuateTail && out.length > 0) {
+    attenuateTail(out, TAIL_FRACTION, TAIL_MIN_GAIN);
+  }
   if (opts.normalize && out.length > 0) {
     normalize(out, TARGET_RMS);
+  }
+  if (opts.compress && out.length > 0) {
+    compress(out, COMPRESS_THRESHOLD, COMPRESS_STRENGTH);
   }
 
   return encodeWav(out, TARGET_SAMPLE_RATE);
@@ -191,21 +242,32 @@ export async function processAudioFromBlobs(
   const rendered = await offline.startRendering();
   let samples = rendered.getChannelData(0);
 
-  if (opts.bandpass) {
-    const bandpassCtx = new OfflineAudioContext(1, samples.length, TARGET_SAMPLE_RATE);
-    const buf = bandpassCtx.createBuffer(1, samples.length, TARGET_SAMPLE_RATE);
+  if (opts.bandpass || opts.trebleBoost) {
+    const filterCtx = new OfflineAudioContext(1, samples.length, TARGET_SAMPLE_RATE);
+    const buf = filterCtx.createBuffer(1, samples.length, TARGET_SAMPLE_RATE);
     buf.copyToChannel(samples, 0);
-    const src = bandpassCtx.createBufferSource();
+    const src = filterCtx.createBufferSource();
     src.buffer = buf;
-    const filter = bandpassCtx.createBiquadFilter();
-    filter.type = "bandpass";
-    const center = Math.sqrt(BANDPASS_LOW * BANDPASS_HIGH);
-    filter.frequency.value = center;
-    filter.Q.value = center / (BANDPASS_HIGH - BANDPASS_LOW);
-    src.connect(filter);
-    filter.connect(bandpassCtx.destination);
+    let lastNode: AudioNode = src;
+    if (opts.bandpass) {
+      const bp = filterCtx.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.value = Math.sqrt(BANDPASS_LOW * BANDPASS_HIGH);
+      bp.Q.value = bp.frequency.value / (BANDPASS_HIGH - BANDPASS_LOW);
+      src.connect(bp);
+      lastNode = bp;
+    }
+    if (opts.trebleBoost) {
+      const shelf = filterCtx.createBiquadFilter();
+      shelf.type = "highshelf";
+      shelf.frequency.value = TREBLE_SHELF_HZ;
+      shelf.gain.value = TREBLE_GAIN_DB;
+      lastNode.connect(shelf);
+      lastNode = shelf;
+    }
+    lastNode.connect(filterCtx.destination);
     src.start(0);
-    const filtered = await bandpassCtx.startRendering();
+    const filtered = await filterCtx.startRendering();
     samples = filtered.getChannelData(0);
   }
 
@@ -217,8 +279,14 @@ export async function processAudioFromBlobs(
   if (opts.trimVad) {
     out = new Float32Array(trimVad(out, TARGET_SAMPLE_RATE));
   }
+  if (opts.attenuateTail && out.length > 0) {
+    attenuateTail(out, TAIL_FRACTION, TAIL_MIN_GAIN);
+  }
   if (opts.normalize && out.length > 0) {
     normalize(out, TARGET_RMS);
+  }
+  if (opts.compress && out.length > 0) {
+    compress(out, COMPRESS_THRESHOLD, COMPRESS_STRENGTH);
   }
 
   return encodeWav(out, TARGET_SAMPLE_RATE);

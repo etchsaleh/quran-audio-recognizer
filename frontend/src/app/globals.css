@@ -81,6 +81,28 @@ button:active {
   box-shadow: 0 0 0 2px rgba(124, 64, 198, 0.4);
 }
 
+/* Sajdah (prostration) symbol – classic Quran style */
+.sajdah-symbol {
+  color: rgba(212, 175, 55, 0.9);
+}
+
+/* Classic Quran (mushaf) style verse number: circle or pill with ornamental border */
+.verse-number-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(212, 175, 55, 0.65);
+  background: linear-gradient(145deg, rgba(212, 175, 55, 0.12), rgba(180, 140, 45, 0.06));
+  color: rgba(250, 235, 200, 0.95);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
 /* Recited phrase highlight: bright purple text, fades out over 2s */
 @keyframes phrase-highlight {
   0% {
