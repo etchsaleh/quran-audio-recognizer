@@ -47,3 +47,8 @@ export function splitVerseByPhrase(
 
   return { before: text, phrase: null, after: "" };
 }
+
+/** Split verse text into words (same as display tokens). */
+export function splitVerseIntoWords(text: string): string[] {
+  return text.split(/\s+/).filter(Boolean);
+}

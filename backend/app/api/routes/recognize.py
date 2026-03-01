@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 
 from app.core.config import get_settings
-from app.schemas.recognize import RecognizeResponse
+from app.schemas.recognize import BestEffortMatch, RecognizeResponse
 from app.services.quran_loader import QuranRepository
 from app.services.recognize_pipeline import RecognizePipeline
 from app.services.transcription import WhisperTranscriber
@@ -47,14 +47,30 @@ async def recognize(request: Request, file: UploadFile = File(...)) -> Recognize
     quran_repo, transcriber = _get_services(request)
     pipeline = RecognizePipeline(quran_repo=quran_repo, transcriber=transcriber, min_confidence=settings.min_confidence)
 
-    result = pipeline.recognize_bytes(audio_bytes=audio, suffix=_suffix(file.filename, file.content_type))
-    if result is None:
-        raise HTTPException(status_code=422, detail="Could not confidently recognize a verse")
-
-    return RecognizeResponse(
-        surah=result.surah,
-        ayah=result.ayah,
-        confidence=result.confidence,
-        matched_phrase=result.matched_phrase,
+    accepted, best_effort = pipeline.recognize_bytes(
+        audio_bytes=audio, suffix=_suffix(file.filename, file.content_type)
     )
+    if accepted is not None:
+        return RecognizeResponse(
+            surah=accepted.surah,
+            ayah=accepted.ayah,
+            confidence=accepted.confidence,
+            matched_phrase=accepted.matched_phrase,
+            matched_word_indices=list(accepted.matched_word_indices) if accepted.matched_word_indices else None,
+        )
+    if best_effort is not None:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": "Could not confidently recognize a verse",
+                "best_effort": BestEffortMatch(
+                    surah=best_effort.surah,
+                    ayah=best_effort.ayah,
+                    confidence=best_effort.confidence,
+                    matched_phrase=best_effort.matched_phrase,
+                    matched_word_indices=list(best_effort.matched_word_indices) if best_effort.matched_word_indices else None,
+                ).model_dump(),
+            },
+        )
+    raise HTTPException(status_code=422, detail="Could not confidently recognize a verse")
 

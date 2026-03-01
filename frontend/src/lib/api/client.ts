@@ -1,5 +1,10 @@
 import { apiBaseUrl } from "@/lib/config";
-import type { RecognizeResponse, Surah, SurahSummary } from "@/lib/api/types";
+import type {
+  BestEffortMatch,
+  RecognizeResponse,
+  Surah,
+  SurahSummary,
+} from "@/lib/api/types";
 
 type FetchInit = RequestInit & { next?: { revalidate?: number } };
 
@@ -12,6 +17,11 @@ async function http<T>(path: string, init?: FetchInit): Promise<T> {
   }
   return (await res.json()) as T;
 }
+
+export type RecognizeError = Error & {
+  statusCode?: number;
+  bestEffort?: BestEffortMatch;
+};
 
 export const api = {
   async getSurahs(): Promise<SurahSummary[]> {
@@ -45,8 +55,22 @@ export const api = {
     }
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      const msg = text ? `${res.status} ${res.statusText}: ${text}` : `${res.status} ${res.statusText}`;
-      throw new Error(msg);
+      let body: unknown = null;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // use raw text
+      }
+      const detail =
+        body && typeof body === "object" && "detail" in body && body.detail && typeof body.detail === "object"
+          ? (body.detail as { message?: string; best_effort?: BestEffortMatch })
+          : null;
+      const err = new Error(
+        detail?.message || (typeof text === "string" ? text : "") || `${res.status} ${res.statusText}`
+      ) as RecognizeError;
+      err.statusCode = res.status;
+      err.bestEffort = detail?.best_effort ?? undefined;
+      throw err;
     }
     return (await res.json()) as RecognizeResponse;
   },

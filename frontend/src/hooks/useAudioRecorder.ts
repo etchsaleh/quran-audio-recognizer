@@ -26,10 +26,14 @@ function rmsFromTimeDomain(data: Uint8Array): number {
   return Math.sqrt(sum / data.length);
 }
 
+const DEFAULT_MIN_SECONDS = 1.5;
+
 export function useAudioRecorder({
   maxSeconds = 12,
+  minSeconds = DEFAULT_MIN_SECONDS,
 }: {
   maxSeconds?: number;
+  minSeconds?: number;
 } = {}) {
   const [state, setState] = useState<RecorderState>("idle");
   const [level, setLevel] = useState(0); // 0..1
@@ -41,6 +45,7 @@ export function useAudioRecorder({
   const stopResolveRef = useRef<((b: Blob) => void) | null>(null);
   const stopRejectRef = useRef<((e: unknown) => void) | null>(null);
   const autoStopTimerRef = useRef<number | null>(null);
+  const recordingStartRef = useRef<number>(0);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -137,6 +142,7 @@ export function useAudioRecorder({
       };
 
       rec.start(250);
+      recordingStartRef.current = Date.now();
       setState("recording");
 
       autoStopTimerRef.current = window.setTimeout(() => {
@@ -173,6 +179,13 @@ export function useAudioRecorder({
     }
 
     const blob = await p;
+    const durationSec = (Date.now() - recordingStartRef.current) / 1000;
+    if (durationSec < minSeconds) {
+      cleanupStream();
+      await cleanupMeter();
+      setState("idle");
+      throw new Error(`Record at least ${minSeconds} seconds. You recorded ${durationSec.toFixed(1)}s.`);
+    }
     recorderRef.current = null;
     stopResolveRef.current = null;
     stopRejectRef.current = null;
@@ -180,7 +193,7 @@ export function useAudioRecorder({
     await cleanupMeter();
     setState("idle");
     return blob;
-  }, [cleanupMeter, cleanupStream, state]);
+  }, [cleanupMeter, cleanupStream, minSeconds, state]);
 
   useEffect(() => {
     return () => {

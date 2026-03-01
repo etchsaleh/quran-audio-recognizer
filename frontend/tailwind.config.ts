@@ -49,12 +49,32 @@ const config: Config = {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.02)" },
         },
+        "ring-expand": {
+          "0%": { transform: "scale(1)", opacity: "0.5" },
+          "50%": { transform: "scale(1.12)", opacity: "0.25" },
+          "100%": { transform: "scale(1.2)", opacity: "0" },
+        },
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "15%": { transform: "translateX(-6px)" },
+          "30%": { transform: "translateX(6px)" },
+          "45%": { transform: "translateX(-4px)" },
+          "60%": { transform: "translateX(4px)" },
+          "75%": { transform: "translateX(-2px)" },
+        },
+        "dots-rotate": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         highlight: "highlight 1000ms ease-out forwards",
         "record-pulse": "record-pulse 1.4s ease-in-out infinite",
         "record-glow": "record-glow 1.6s ease-in-out infinite",
         "idle-breathe": "idle-breathe 3s ease-in-out infinite",
+        "ring-expand": "ring-expand 1.8s ease-out infinite",
+        shake: "shake 0.5s ease-in-out",
+        "dots-rotate": "dots-rotate 1s linear infinite",
       },
       transitionDuration: {
         350: "350ms",

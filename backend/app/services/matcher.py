@@ -15,13 +15,21 @@ def _word_split(text: str) -> list[str]:
 
 def _extract_matched_phrase(verse: VerseEntry, query_norm: str) -> str | None:
     """Find the span of verse text that best matches the transcript."""
+    _, phrase = _extract_matched_phrase_and_indices(verse, query_norm)
+    return phrase
+
+
+def _extract_matched_phrase_and_indices(
+    verse: VerseEntry, query_norm: str
+) -> tuple[list[int], str | None]:
+    """Find best matching span; return (word indices 0-based, phrase text)."""
     v_norm_words = _word_split(verse.text_norm)
     v_orig_words = _word_split(verse.text)
     if not v_norm_words or len(v_norm_words) != len(v_orig_words):
-        return None
+        return ([], None)
     q_words = _word_split(query_norm)
     if not q_words:
-        return None
+        return ([], None)
 
     best_score = 0.0
     best_start, best_end = 0, 0
@@ -35,8 +43,10 @@ def _extract_matched_phrase(verse: VerseEntry, query_norm: str) -> str | None:
                 best_start, best_end = i, j
 
     if best_score < 0.5:
-        return None
-    return " ".join(v_orig_words[best_start:best_end])
+        return ([], None)
+    indices = list(range(best_start, best_end))
+    phrase = " ".join(v_orig_words[best_start:best_end])
+    return (indices, phrase)
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +56,7 @@ class MatchResult:
     confidence: float
     score: float
     matched_phrase: str | None = None
+    matched_word_indices: tuple[int, ...] = ()
 
 
 def _tokenize(text_norm: str) -> list[str]:
@@ -141,9 +152,9 @@ class VerseMatcher:
         verse = self._verses[best_idx]
         margin = max(0.0, best_score - max(0.0, second_score))
 
-        # Balanced: avoid wrong matches but limit false negatives
-        MIN_SCORE = 0.55
-        MIN_MARGIN = 0.04
+        # Balanced: allow partial matches, limit false negatives
+        MIN_SCORE = 0.52
+        MIN_MARGIN = 0.03
         if best_score < MIN_SCORE:
             return None
         if margin < MIN_MARGIN:
@@ -154,12 +165,43 @@ class VerseMatcher:
         uniqueness = _clamp01(margin / 0.08)  # ~0.08 gap is a strong indicator
         confidence = _clamp01(strength * 0.75 + uniqueness * 0.25)
 
-        matched_phrase = _extract_matched_phrase(verse, q)
+        word_indices, matched_phrase = _extract_matched_phrase_and_indices(verse, q)
         return MatchResult(
             surah=verse.surah,
             ayah=verse.ayah,
             confidence=confidence,
             score=best_score,
             matched_phrase=matched_phrase,
+            matched_word_indices=tuple(word_indices),
         )
+
+    def match_best_span(self, transcript: str) -> MatchResult | None:
+        """Sliding window over transcript words; returns best match across all windows."""
+        q_norm = normalize_arabic(transcript)
+        if not q_norm or len(q_norm) < 4:
+            return None
+        words = _word_split(q_norm)
+        if len(words) < 2:
+            return self.match(transcript)
+        # Windows of 5–20 words, step 2
+        window_size = min(20, max(5, len(words)))
+        step = 2
+        best: MatchResult | None = None
+        for i in range(0, len(words) - 2, step):
+            end = min(i + window_size, len(words))
+            span = " ".join(words[i:end])
+            if len(span) < 4:
+                continue
+            m = self.match(span)
+            if m and (best is None or m.score > best.score):
+                best = m
+        return best if best is not None else self.match(transcript)
+
+    def match_best_effort(self, transcript: str) -> MatchResult | None:
+        """Return best match even if below confidence threshold (for best_effort response)."""
+        m = self.match_best_span(transcript)
+        if m is None:
+            return None
+        # Return as-is; pipeline will use confidence to decide accept vs best_effort
+        return m
 

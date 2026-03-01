@@ -20,5 +20,14 @@ export type RecognizeResponse = {
   ayah: number;
   confidence: number;
   matched_phrase?: string | null;
+  matched_word_indices?: number[] | null;
+};
+
+export type BestEffortMatch = {
+  surah: number;
+  ayah: number;
+  confidence: number;
+  matched_phrase?: string | null;
+  matched_word_indices?: number[] | null;
 };
 

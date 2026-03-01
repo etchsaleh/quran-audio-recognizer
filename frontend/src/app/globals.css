@@ -75,6 +75,12 @@ button:active {
   animation: verse-highlight 1000ms ease-out forwards;
 }
 
+/* Bookmarked verse: same border + box-shadow as verse highlight (no animation) */
+.verse-bookmark {
+  border-color: rgba(124, 64, 198, 0.9) !important;
+  box-shadow: 0 0 0 2px rgba(124, 64, 198, 0.4);
+}
+
 /* Recited phrase highlight: bright purple text, fades out over 2s */
 @keyframes phrase-highlight {
   0% {
@@ -90,5 +96,35 @@ button:active {
   animation: phrase-highlight 2000ms ease-out forwards;
   border-radius: 4px;
   padding: 0 2px;
+}
+
+/* Word-level highlight (spoken words in real-time or result) */
+.word-highlight {
+  color: #E8D4FF;
+  background-color: rgba(156, 100, 255, 0.35);
+  border-radius: 3px;
+  padding: 0 1px;
+  transition: color 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+/* Loading dots – rotate container so dots orbit */
+@keyframes dots-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.dots-rotate {
+  animation: dots-rotate 1s linear infinite;
+}
+
+/* Listening... animated dots */
+.listening-dots span {
+  animation: listening-dot 1.2s ease-in-out infinite;
+}
+.listening-dots span:nth-child(1) { animation-delay: 0s; }
+.listening-dots span:nth-child(2) { animation-delay: 0.2s; }
+.listening-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes listening-dot {
+  0%, 60%, 100% { opacity: 0.3; }
+  30% { opacity: 1; }
 }
 
