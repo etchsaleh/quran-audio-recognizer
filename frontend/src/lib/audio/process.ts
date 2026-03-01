@@ -155,3 +155,71 @@ export async function processAudio(
 
   return encodeWav(out, TARGET_SAMPLE_RATE);
 }
+
+/**
+ * Decode multiple blobs, concatenate (resample to 16 kHz), then same pipeline as processAudio.
+ * Used for sliding-window recognition (e.g. merge six 1s chunks into a 6s window).
+ */
+export async function processAudioFromBlobs(
+  blobs: Blob[],
+  options: ProcessOptions = {}
+): Promise<ArrayBuffer> {
+  if (blobs.length === 0) throw new Error("processAudioFromBlobs requires at least one blob");
+  if (blobs.length === 1) return processAudio(blobs[0], options);
+
+  const opts = { ...defaultOptions, ...options };
+  const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+  const buffers: AudioBuffer[] = [];
+  let totalDuration = 0;
+  for (const blob of blobs) {
+    const arrayBuffer = await blob.arrayBuffer();
+    const ab = await ctx.decodeAudioData(arrayBuffer.slice(0));
+    buffers.push(ab);
+    totalDuration += ab.duration;
+  }
+
+  const numSamples = Math.ceil(totalDuration * TARGET_SAMPLE_RATE);
+  const offline = new OfflineAudioContext(1, numSamples, TARGET_SAMPLE_RATE);
+  let t = 0;
+  for (const ab of buffers) {
+    const source = offline.createBufferSource();
+    source.buffer = ab;
+    source.connect(offline.destination);
+    source.start(t);
+    t += ab.duration;
+  }
+  const rendered = await offline.startRendering();
+  let samples = rendered.getChannelData(0);
+
+  if (opts.bandpass) {
+    const bandpassCtx = new OfflineAudioContext(1, samples.length, TARGET_SAMPLE_RATE);
+    const buf = bandpassCtx.createBuffer(1, samples.length, TARGET_SAMPLE_RATE);
+    buf.copyToChannel(samples, 0);
+    const src = bandpassCtx.createBufferSource();
+    src.buffer = buf;
+    const filter = bandpassCtx.createBiquadFilter();
+    filter.type = "bandpass";
+    const center = Math.sqrt(BANDPASS_LOW * BANDPASS_HIGH);
+    filter.frequency.value = center;
+    filter.Q.value = center / (BANDPASS_HIGH - BANDPASS_LOW);
+    src.connect(filter);
+    filter.connect(bandpassCtx.destination);
+    src.start(0);
+    const filtered = await bandpassCtx.startRendering();
+    samples = filtered.getChannelData(0);
+  }
+
+  let out: Float32Array = new Float32Array(samples.length);
+  out.set(samples);
+  if (opts.trimSilence) {
+    out = new Float32Array(trimSilence(out, TARGET_SAMPLE_RATE));
+  }
+  if (opts.trimVad) {
+    out = new Float32Array(trimVad(out, TARGET_SAMPLE_RATE));
+  }
+  if (opts.normalize && out.length > 0) {
+    normalize(out, TARGET_RMS);
+  }
+
+  return encodeWav(out, TARGET_SAMPLE_RATE);
+}
