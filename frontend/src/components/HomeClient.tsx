@@ -249,7 +249,7 @@ export function HomeClient() {
   return (
     <main className="min-h-[100dvh] pt-safe-t flex flex-col bg-app-bg">
       <section className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pt-12">
-        <p className="absolute top-0 left-0 right-0 pt-safe-t pt-12 pb-2 text-center font-display text-[19px] font-black text-white">
+        <p className="absolute top-0 left-0 right-0 pt-safe-t pt-[4.5rem] pb-2 text-center font-display text-[19px] font-black text-white">
           Find your place in the recitation.
         </p>
         {micUnavailable === true && (
