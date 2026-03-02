@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { StickyHeader } from "@/components/StickyHeader";
@@ -8,6 +8,7 @@ import { Verse } from "@/components/Verse";
 import { SurahNav } from "@/components/SurahNav";
 import { useHighlightVerse } from "@/hooks/useHighlightVerse";
 import { useBookmarks } from "@/hooks/useBookmarks";
+import { fetchVerseMeaning } from "@/lib/verse-meaning";
 import type { SurahSummary } from "@/lib/api/types";
 
 const PULL_MAX_PX = 160;
@@ -64,9 +65,39 @@ export function SurahReaderClient({
   const setPullProgressRef = useRef(setPullProgress);
   setPullProgressRef.current = setPullProgress;
 
+  const [expandedVerse, setExpandedVerse] = useState<{ surah: number; ayah: number } | null>(null);
+  const [verseMeaning, setVerseMeaning] = useState<string | null>(null);
+  const [verseMeaningLoading, setVerseMeaningLoading] = useState(false);
+
+  const handleTapVerse = useCallback((s: number, a: number) => {
+    setExpandedVerse((prev) => (prev?.surah === s && prev?.ayah === a ? null : { surah: s, ayah: a }));
+  }, []);
+
   useEffect(() => {
     gestureStateRef.current = gestureState;
   }, [gestureState]);
+
+  useEffect(() => {
+    if (!expandedVerse) {
+      setVerseMeaning(null);
+      setVerseMeaningLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setVerseMeaningLoading(true);
+    setVerseMeaning(null);
+    fetchVerseMeaning(expandedVerse.surah, expandedVerse.ayah)
+      .then((text) => {
+        if (!cancelled) setVerseMeaning(text);
+      })
+      .catch(() => {
+        if (!cancelled) setVerseMeaning(null);
+      })
+      .finally(() => {
+        if (!cancelled) setVerseMeaningLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [expandedVerse]);
 
   useEffect(() => {
     if (!nextSurah) return;
@@ -205,6 +236,10 @@ export function SurahReaderClient({
                 highlightedWordIndices={highlighted ? matchedWordIndices ?? undefined : undefined}
                 isBookmarked={isBookmarked(surah, v.ayah)}
                 onToggleBookmark={toggleBookmark}
+                onTapVerse={handleTapVerse}
+                isExpanded={expandedVerse?.surah === surah && expandedVerse?.ayah === v.ayah}
+                meaning={expandedVerse?.surah === surah && expandedVerse?.ayah === v.ayah ? verseMeaning : null}
+                meaningLoading={expandedVerse?.surah === surah && expandedVerse?.ayah === v.ayah ? verseMeaningLoading : false}
               />
             );
           })}

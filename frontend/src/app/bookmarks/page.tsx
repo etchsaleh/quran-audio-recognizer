@@ -26,7 +26,7 @@ export default function BookmarksPage() {
         {bookmarks.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-app-surface px-5 py-8 text-center">
             <p className="text-white/70 text-[15px]">No bookmarks yet.</p>
-            <p className="mt-1 text-white/50 text-sm">Open a surah and tap a verse to bookmark it.</p>
+            <p className="mt-1 text-white/50 text-sm">Open a surah and double-tap a verse to bookmark it.</p>
             <Link
               href="/surahs"
               className="mt-4 inline-block rounded-xl bg-primary/20 text-primary-light px-4 py-2 text-sm font-semibold"

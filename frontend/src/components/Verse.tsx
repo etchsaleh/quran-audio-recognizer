@@ -1,3 +1,4 @@
+import { useRef, useCallback, useEffect } from "react";
 import { cn } from "@/lib/cn";
 import { toArabicIndicDigits } from "@/lib/arabic";
 import { splitVerseByPhrase, splitVerseIntoWords } from "@/lib/verse-text";
@@ -10,6 +11,8 @@ const SAJDAH_VERSES = new Set<string>([
 ]);
 const SAJDAH_SYMBOL = "۩"; // U+06E9 Arabic place of sajdah
 
+const DOUBLE_TAP_MS = 350;
+
 export function Verse({
   surah,
   ayah,
@@ -19,6 +22,10 @@ export function Verse({
   highlightedWordIndices,
   isBookmarked,
   onToggleBookmark,
+  onTapVerse,
+  isExpanded,
+  meaning,
+  meaningLoading,
 }: {
   surah: number;
   ayah: number;
@@ -28,6 +35,10 @@ export function Verse({
   highlightedWordIndices?: number[] | null;
   isBookmarked?: boolean;
   onToggleBookmark?: (surah: number, ayah: number) => void;
+  onTapVerse?: (surah: number, ayah: number) => void;
+  isExpanded?: boolean;
+  meaning?: string | null;
+  meaningLoading?: boolean;
 }) {
   const isSajdahVerse = SAJDAH_VERSES.has(`${surah}-${ayah}`);
   const textWithoutSajdah = isSajdahVerse ? text.replace(/\u06E9/g, "").trim() : text;
@@ -39,6 +50,39 @@ export function Verse({
       : null;
   const showJuzDivider = isJuzStart(surah, ayah);
   const juzNum = getJuz(surah, ayah);
+
+  const showMeaning = onTapVerse != null;
+  const lastTapRef = useRef(0);
+  const singleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const articleClick = showMeaning ? undefined : (onToggleBookmark ? () => onToggleBookmark(surah, ayah) : undefined);
+  const articleRole = showMeaning ? undefined : (onToggleBookmark ? "button" : undefined);
+
+  const handleVerseTap = useCallback(() => {
+    if (!onTapVerse) return;
+    if (!onToggleBookmark) {
+      onTapVerse(surah, ayah);
+      return;
+    }
+    const now = Date.now();
+    if (now - lastTapRef.current <= DOUBLE_TAP_MS) {
+      if (singleTapTimerRef.current) {
+        clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = null;
+      }
+      lastTapRef.current = 0;
+      onToggleBookmark(surah, ayah);
+      return;
+    }
+    lastTapRef.current = now;
+    singleTapTimerRef.current = setTimeout(() => {
+      singleTapTimerRef.current = null;
+      onTapVerse(surah, ayah);
+    }, DOUBLE_TAP_MS);
+  }, [surah, ayah, onTapVerse, onToggleBookmark]);
+
+  useEffect(() => () => {
+    if (singleTapTimerRef.current) clearTimeout(singleTapTimerRef.current);
+  }, []);
 
   return (
     <div className="grid gap-2">
@@ -57,11 +101,11 @@ export function Verse({
       )}
       <article
         id={`verse-${surah}-${ayah}`}
-        role={onToggleBookmark ? "button" : undefined}
-        tabIndex={onToggleBookmark ? 0 : undefined}
-        onClick={onToggleBookmark ? () => onToggleBookmark(surah, ayah) : undefined}
+        role={articleRole}
+        tabIndex={articleRole ? 0 : undefined}
+        onClick={articleClick}
         onKeyDown={
-          onToggleBookmark
+          articleRole && onToggleBookmark
             ? (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -72,19 +116,33 @@ export function Verse({
         }
         className={cn(
           "rounded-2xl border px-4 py-4 text-right cursor-default",
-          onToggleBookmark && "cursor-pointer active:scale-[0.99]",
+          !showMeaning && onToggleBookmark && "cursor-pointer active:scale-[0.99]",
           highlighted && "verse-highlight",
           !highlighted && "border-white/10 bg-app-surface transition-colors duration-200",
           !highlighted && isBookmarked && "verse-bookmark bg-primary/20",
         )}
-        aria-label={onToggleBookmark ? (isBookmarked ? "Remove bookmark" : "Bookmark verse") : undefined}
+        aria-label={!showMeaning && onToggleBookmark ? (isBookmarked ? "Remove bookmark" : "Bookmark verse") : undefined}
       >
         <div className="flex items-start justify-between gap-3 flex-row-reverse">
           <div
-            className="flex-1 font-quran text-[22px] leading-[2.2] text-right"
+            className={cn("flex-1 font-quran text-[22px] leading-[2.2] text-right min-w-0", showMeaning && "cursor-pointer active:opacity-90")}
             dir="rtl"
             lang="ar"
             style={{ color: highlighted ? "#D4B8F0" : "#ffffff" }}
+            role={showMeaning ? "button" : undefined}
+            tabIndex={showMeaning ? 0 : undefined}
+            onClick={showMeaning ? (e) => { e.stopPropagation(); handleVerseTap(); } : undefined}
+            onKeyDown={
+              showMeaning
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleVerseTap();
+                    }
+                  }
+                : undefined
+            }
+            aria-label={showMeaning ? "Tap for meaning, double-tap to bookmark" : undefined}
           >
             {wordHighlightSet && words.length > 0 ? (
               <>
@@ -133,6 +191,21 @@ export function Verse({
             </span>
           </div>
         </div>
+        {showMeaning && isExpanded && (
+          <div
+            className="verse-meaning mt-3 pt-3 border-t border-white/10 text-right text-sm text-white/90 leading-relaxed"
+            dir="rtl"
+            lang="ar"
+          >
+            {meaningLoading ? (
+              <span className="text-white/50">جاري التحميل…</span>
+            ) : meaning ? (
+              <p>{meaning}</p>
+            ) : (
+              <span className="text-white/50">تعذر تحميل المعنى.</span>
+            )}
+          </div>
+        )}
       </article>
     </div>
   );

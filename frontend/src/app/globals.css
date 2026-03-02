@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -55,6 +56,13 @@ button:active {
   font-feature-settings: "calt" 1, "liga" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Verse meaning (tafsir): readable Arabic, not Amiri */
+.verse-meaning {
+  font-family: "Noto Naskh Arabic", serif;
+  font-feature-settings: "calt" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
 }
 
 /* Ensure purple is visible even if Tailwind purges */
