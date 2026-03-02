@@ -50,6 +50,13 @@ button:active {
   user-select: none;
 }
 
+/* Quran / Arabic: proper cursive joining (contextual letter forms) */
+.font-quran {
+  font-feature-settings: "calt" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
 /* Ensure purple is visible even if Tailwind purges */
 .bg-primary { background-color: var(--primary) !important; }
 .text-primary { color: var(--primary) !important; }

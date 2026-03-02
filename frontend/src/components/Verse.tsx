@@ -84,9 +84,7 @@ export function Verse({
             className="flex-1 font-quran text-[22px] leading-[2.2] text-right"
             dir="rtl"
             lang="ar"
-            style={{
-              color: highlighted ? "#D4B8F0" : "#ffffff",
-            }}
+            style={{ color: highlighted ? "#D4B8F0" : "#ffffff" }}
           >
             {wordHighlightSet && words.length > 0 ? (
               <>
