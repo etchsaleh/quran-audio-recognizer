@@ -16,7 +16,7 @@ const MIN_CHUNK_MS = 800;
 const WINDOW_CHUNKS = 6; // 6s minimum for meaningful recognition
 
 const CONFIDENCE_HIGH = 0.52; // single result: stop immediately
-const CONFIDENCE_AGREE = 0.4; // two agreeing results: stop
+const CONFIDENCE_AGREE = 0.38; // 2 agreeing or 2-of-3 vote: stop
 const SPEECH_LEVEL_THRESHOLD = 0.08;
 const LEVEL_POLL_MS = 200;
 const SPEECH_SAMPLES_REQUIRED = 2;
@@ -132,6 +132,31 @@ export function HomeClient() {
               matched_phrase: b.matched_phrase ?? undefined,
               matched_word_indices: b.matched_word_indices ?? undefined,
             });
+            return;
+          }
+          if (results.length >= 3) {
+            const last3 = results.slice(-3);
+            const key = (r: MatchResult) => `${r.surah}-${r.ayah}`;
+            const byKey: Record<string, MatchResult[]> = {};
+            for (const r of last3) {
+              const k = key(r);
+              if (!byKey[k]) byKey[k] = [];
+              byKey[k].push(r);
+            }
+            const agreed = Object.entries(byKey).find(([, arr]) => arr.length >= 2);
+            if (agreed) {
+              const arr = agreed[1];
+              const withConf = arr.filter((r) => r.confidence >= CONFIDENCE_AGREE);
+              if (withConf.length >= 2) {
+                const best = arr[arr.length - 1];
+                handleMatch({
+                  surah: best.surah,
+                  ayah: best.ayah,
+                  matched_phrase: best.matched_phrase ?? undefined,
+                  matched_word_indices: best.matched_word_indices ?? undefined,
+                });
+              }
+            }
           }
         }
       } catch {
