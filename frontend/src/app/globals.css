@@ -150,3 +150,13 @@ button:active {
   30% { opacity: 1; }
 }
 
+/* Pull-to-next threshold lock: subtle glow only (no scale/jump) */
+@keyframes pull-threshold-pulse {
+  0% { box-shadow: none; }
+  40% { box-shadow: 0 0 0 2px rgba(124, 64, 198, 0.4); }
+  100% { box-shadow: none; }
+}
+.pull-threshold-pulse {
+  animation: pull-threshold-pulse 220ms ease-out forwards;
+}
+
